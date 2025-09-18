@@ -115,16 +115,20 @@ class LocalSearchController: NSObject, ObservableObject {
 /// Adds `MKLocalSearchCompleterDelegate` conformance so the controller can use the delegate's callback methods
 extension LocalSearchController: MKLocalSearchCompleterDelegate {
     /// Called if `MKLocalSearchCompleter` return valid results from a query string
-    func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
-        guard let callback else { return }
-        let results = completer.results.map {
-            LocalSearchResult( result: $0 )
+    nonisolated func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
+        Task { @MainActor in
+            guard let callback else { return }
+            let results = completer.results.map {
+                LocalSearchResult( result: $0 )
+            }
+            callback(results)
         }
-        callback(results)
     }
 
     /// Called if `MKLocalSearchCompleter` encounters an error
-    func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
-        print(error)
+    nonisolated func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
+        Task { @MainActor in
+            print(error)
+        }
     }
 }
